@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">  
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="description" content="">
+		<meta name="author" content="">
+
+		<title>Contabilidade Salário</title>
+
+		<link href="bootstrap.min.css" rel="stylesheet">
+
+		<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+		<!--[if lt IE 9]>
+		  <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+		  <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+		<![endif]-->
+	</head>
+
+	<body style="margin-top: 15px;">	
+		<div class="container">
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<div class="panel-title">
+						Contabilidade Salário
+					</div>
+				</div>
+				
+				<div class="panel-body">
+					<div class="row">
+						<div class="col-md-3">
+							<div class="form-group">
+								<label class="control-label" for="inputSalarioBruto">Salário Bruto:</label>
+								<div class="input-group">
+									<div class="input-group-addon">R$</div>
+									<input id="inputSalarioBruto" name="inputSalarioBruto" class="form-control money" type="text" />
+								</div>
+							</div>
+						</div>
+						<div class="col-md-3">
+							<div class="form-group">
+								<label class="control-label" for="inputSindicato">Sindicato:</label>
+								<div class="input-group">
+									<div class="input-group-addon">R$</div>
+									<input id="inputSindicato" name="inputSindicato" class="form-control money" type="text" />
+								</div>
+							</div>
+						</div>
+						<div class="col-md-3">
+							<div class="form-group">
+								<label class="control-label" for="inputSaude">Reembolso Saúde:</label>
+								<div class="input-group">
+									<div class="input-group-addon">R$</div>
+									<input id="inputSaude" name="inputSaude" class="form-control money" type="text" />
+								</div>
+							</div>
+						</div>
+						
+						<div class="col-md-3">
+							<div class="form-group">
+								<label class="control-label" for="inputAlimentacao">Vale Alimentação:</label>
+								<div class="input-group">
+									<div class="input-group-addon">R$</div>
+									<input id="inputAlimentacao" name="inputAlimentacao" class="form-control money" type="text" />
+								</div>
+							</div>
+						</div>
+					</div>
+					
+					<div class="row">
+						<div class="col-md-4">
+							<div class="form-group">
+								<label class="control-label" for="selectTipo">Férias:</label>
+								<select id="selectTipo" name="selectTipo" class="form-control">
+									<option value="1">Normal</option>
+									<option value="2">Férias</option>
+									<option value="3">Desconto Adiantamento</option>
+									<option value="4">13ª Salário</option>
+								</select>
+							</div>
+						</div>
+					</div>
+				</div>
+				
+				<div class="panel-footer">
+					<button class="btn btn-primary" onclick="calcular()">Calcular</button>
+				</div>
+			</div>
+			
+			<div id="panelCalcular" class="panel panel-default collapse">
+				<div class="panel-heading">
+					<div class="panel-title">
+						Resultado
+					</div>
+				</div>
+						
+				<div class="panel-body">
+					<h4 id="valSalarioBruto" class="text-success">+ Salário Bruto: R$ <span>0</span></h4>
+					<h4 id="valSaude" class="text-success">+ Reembolso Saúde: R$ <span>0</span></h4>
+					<h4 id="valAlimentacao" class="text-success">+ Vale Alimentação: R$ <span>0</span></h4>
+					<h4 id="valFerias" class="text-success">+ 1/3 de Férias: R$ <span>0</span></h4>
+					<h4 id="valDecimoTerceiro" class="text-success">+ 13º Salário: R$ <span>0</span></h4>
+					<h4 id="valAdiantamento" class="text-success">+ Adiantamento Salário: R$ <span>0</span></h4>
+					<h4 id="valRestAdiantamento" class="text-danger">- Restituição de Adiantamento: R$ <span>0</span></h4>
+					<h4 id="valSindicato" class="text-danger">- Sindicato: R$ <span>0</span></h4>
+					<h4 id="valInss" class="text-danger">- INSS: R$ <span>0</span></h4>
+					<h4 id="valIrrf"  class="text-danger">- IRRF: R$ <span>0</span></h4>
+					<h4 id="valIrrfFerias" class="text-danger">- IRRF - Férias: R$ <span>0</span></h4>
+				</div>
+				
+				<div class="panel-footer">
+					<h1 id="valTotal">Total: R$ <span>0<span></h1>
+				</div>
+			</div>
+		</div>
+		
+
+		<script src="jquery.min.js"></script>
+		<script src="jquery.mask.js"></script>
+		<script src="bootstrap.min.js"></script>
+		
+		<script>
+			$(document).ready(function(){
+				$('.money').mask("#.##0,00", {reverse: true});
+			});
+		
+			function calcular(){				
+				var valorSalarioBruto = converterNumero($("#inputSalarioBruto").val());
+				var valorSindicato = converterNumero($("#inputSindicato").val());
+				var valorSaude = converterNumero($("#inputSaude").val());
+				var valorAlimentacao = converterNumero($("#inputAlimentacao").val());
+				var valorTipo = $("#selectTipo").val();
+				
+				if(valorTipo == 1) {
+					var valorINSS = arredondarNumero(valorSalarioBruto*.11);
+					var valorIRRF = calcularIRRF(valorSalarioBruto, valorINSS);					
+					var valorTotal = valorSalarioBruto + valorSaude + valorAlimentacao - valorSindicato - valorINSS - valorIRRF;
+					valorTotal = valorTotal.toFixed(2);
+					
+					$("#valSalarioBruto span").html(valorSalarioBruto);
+					$("#valSaude span").html(valorSaude);
+					$("#valAlimentacao span").html(valorAlimentacao);
+					$("#valFerias span").html("0");
+					$("#valDecimoTerceiro span").html("0");
+					$("#valAdiantamento span").html("0");
+					$("#valRestAdiantamento span").html("0");					
+					$("#valSindicato span").html(valorSindicato);
+					$("#valInss span").html(valorINSS);
+					$("#valIrrf span").html(valorIRRF);
+					$("#valIrrfFerias span").html("0");					
+					$("#valTotal span").html(valorTotal);					
+				}
+				
+				if(valorTipo == 2) {
+					var valorAdiantamento = 1205.02;
+					var valorFerias = arredondarNumero(valorSalarioBruto/3);
+					var valorDecimoTerceiro = arredondarNumero(valorSalarioBruto/2);
+					var valorINSS = arredondarNumero((valorSalarioBruto+valorAdiantamento)*.11);
+					var valorIRRF = calcularIRRF(valorSalarioBruto+valorAdiantamento, valorINSS);		
+					var valorIRRFFerias = calcularIRRF(valorFerias, 0);							
+					var valorTotal = valorAdiantamento + valorFerias + valorDecimoTerceiro + valorSalarioBruto + valorSaude + valorAlimentacao - valorSindicato - valorINSS - valorIRRF - valorIRRFFerias;
+					valorTotal = valorTotal.toFixed(2);
+					
+					$("#valSalarioBruto span").html(valorSalarioBruto);
+					$("#valSaude span").html(valorSaude);
+					$("#valAlimentacao span").html(valorAlimentacao);
+					$("#valFerias span").html(valorFerias);
+					$("#valDecimoTerceiro span").html(valorDecimoTerceiro);
+					$("#valAdiantamento span").html(valorAdiantamento);
+					$("#valRestAdiantamento span").html("0");					
+					$("#valSindicato span").html(valorSindicato);
+					$("#valInss span").html(valorINSS);
+					$("#valIrrf span").html(valorIRRF);
+					$("#valIrrfFerias span").html(valorIRRFFerias);					
+					$("#valTotal span").html(valorTotal);					
+				}
+				
+				if(valorTipo == 3) {
+					var valorAdiantamento = 1205.02;
+					var valorINSS = arredondarNumero((valorSalarioBruto-valorAdiantamento)*.11);
+					var valorIRRF = calcularIRRF(valorSalarioBruto-valorAdiantamento, valorINSS);	
+					var valorTotal = valorSalarioBruto + valorSaude + valorAlimentacao - valorSindicato - valorINSS - valorIRRF - valorAdiantamento;
+					valorTotal = valorTotal.toFixed(2);
+					
+					$("#valSalarioBruto span").html(valorSalarioBruto);
+					$("#valSaude span").html(valorSaude);
+					$("#valAlimentacao span").html(valorAlimentacao);
+					$("#valFerias span").html("0");
+					$("#valDecimoTerceiro span").html("0");
+					$("#valRestAdiantamento span").html(valorAdiantamento);					
+					$("#valSindicato span").html(valorSindicato);
+					$("#valInss span").html(valorINSS);
+					$("#valIrrf span").html(valorIRRF);
+					$("#valIrrfFerias span").html("0");					
+					$("#valTotal span").html(valorTotal);					
+				}
+				
+				$("#panelCalcular .panel-body span").each(function( index ) {
+					if($(this).html() == "0" ){
+						$(this).parent().hide();
+					} else {
+						$(this).parent().show();
+					}
+				});
+				$("#panelCalcular").show();
+			}
+			
+			function converterNumero(texto) {
+				if(isNaN(texto)) {				
+					texto = texto.replace(/\./g,'').replace(',','.');
+					return parseFloat(texto);
+				} else {
+					return 0;
+				}
+			}
+			
+			function arredondarNumero(numero) {
+				return Math.floor(numero * 100) / 100;
+			}
+			
+			function calcularIRRF(valorSalarioBruto, valorINSS) {
+				var faixa1 = 1903.98;
+				var faixa2 = 2826.65;
+				var faixa3 = 3751.05;
+				var faixa4 = 4664.68;
+				var baseCalculo = valorSalarioBruto - valorINSS;
+				var impostoFaixa2 = 0;
+				var impostoFaixa3 = 0;
+				var impostoFaixa4 = 0;
+				var impostoFaixa5 = 0;
+				
+				if(valorSalarioBruto > faixa1) {
+					if(baseCalculo-faixa1 > faixa2-faixa1) {
+						impostoFaixa2 = arredondarNumero((faixa2-faixa1)*.075);
+					} else {
+						impostoFaixa2 = arredondarNumero((baseCalculo-faixa1)*.075);
+					}
+				}
+				
+				if(valorSalarioBruto > faixa2) {
+					if(baseCalculo-faixa2 > faixa3-faixa2) {
+						impostoFaixa3 = arredondarNumero((faixa3-faixa2)*.15);
+					} else {
+						impostoFaixa3 = arredondarNumero((baseCalculo-faixa2)*.15);
+					}
+				}
+				
+				if(valorSalarioBruto > faixa3) {
+					if(baseCalculo-faixa3 > faixa4-faixa3) {
+						impostoFaixa4 = arredondarNumero((faixa4-faixa3)*.225);
+					} else {
+						impostoFaixa4 = arredondarNumero((baseCalculo-faixa3)*.225);
+					}
+				}
+				
+				if(valorSalarioBruto > faixa4) {
+					impostoFaixa5 = arredondarNumero((baseCalculo-faixa4)*.275);
+				}
+				
+				var impostoTotal = impostoFaixa2 + impostoFaixa3 + impostoFaixa4 + impostoFaixa5;
+				return impostoTotal.toFixed(2);
+			}
+		</script>
+	</body>
+</html>
